@@ -1,3 +1,5 @@
+import Balls from './experiment/balls';
+
 interface rectangle {
     type: string;
     x0: number;
@@ -19,6 +21,8 @@ interface pinball {
     dx: number;
     dy: number;
     radius: number;
+    pendingdx: number;
+    pendingdy: number;
 }
 
 interface constructorOpts {
@@ -66,6 +70,8 @@ export default class Pinball {
             y: 0,
             dx: 0,
             dy: 0,
+            pendingdx: 0,
+            pendingdy: 0,
             radius: 10
         }
 
@@ -166,8 +172,9 @@ export default class Pinball {
     startGame = () => {
         let ctx = this.table.getContext('2d');
         ctx.clearRect(0, 0, this.tableWidth, this.tableHeight);
-        this.drawObstacles(this.obstacles);
+        this.collisionDetection(this.obstacles);
         this.drawCircle(this.pinball);        
+        this.drawObstacles(this.obstacles);
         this.pinball.x += this.pinball.dx;
         this.pinball.y += this.pinball.dy;
 
@@ -190,11 +197,31 @@ export default class Pinball {
         } else if(e.keyCode == 13) {
             ctx.clearRect(this.tableWidth, this.tableHeight, -this.releaseLineLength, -this.releaseLineLength);
             // fire the pinball
-            this.startGame(this.releaseAngle);
+            this.startGame();
         }
     }
 
     // ** COLLIDING ** //
+
+    collisionDetection(obstacles){
+
+        for(let i=0; i<obstacles.length; i++) {
+
+            // check for circle obstacles
+            if(obstacles[i].type === 'circle'){
+                const balls = new Balls();
+                if(balls.detectBallCollision(this.pinball, obstacles[i], this.tableHeight)) {
+                    console.log('hit the ball');
+                    var newVelocityVector = balls.newVelocityPostBallCollision(this.pinball, obstacles[i]); // cant use this as the other ball is static
+                    // need https://collectionofatoms.com/2016/05/16/ball_collisions
+                    this.pinball.dx = newVelocityVector.dx;
+                    this.pinball.dy = newVelocityVector.dy;
+                }
+            }
+
+        }
+
+    }
 
     // ** COLLIDING END ** //
 

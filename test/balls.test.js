@@ -18,6 +18,7 @@ describe('newVelocity', () => {
             y: 5,
             dx: 1, // ball velocity
             dy: 1, // ball velocity
+            radius: 10,
         }
 
         var ballb = {
@@ -25,6 +26,7 @@ describe('newVelocity', () => {
             y: 9,
             dx: -1, // ball velocity
             dy: -1, // ball velocity
+            radius: 10,
         }
 
         var result = {
@@ -57,6 +59,7 @@ describe('detectBallCollision', () => {
             y: 5,
             dx: 1, // ball velocity
             dy: 1, // ball velocity
+            radius: 10,
         }
 
         var ballb = {
@@ -64,9 +67,10 @@ describe('detectBallCollision', () => {
             y: 9,
             dx: -1, // ball velocity
             dy: -1, // ball velocity
+            radius: 10,
         }
 
-        expect(balls.detectBallCollision(balla, ballb)).toEqual(true);
+        expect(balls.detectBallCollision(balla, ballb, 320)).toEqual(true);
 
     });
 

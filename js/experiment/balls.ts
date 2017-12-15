@@ -31,13 +31,14 @@
 // }
 
 interface Ball {
-    name: string,
+    name?: string,
     x: number,
     y: number,
     dx: number, // ball velocity
     dy: number, // ball velocity 
     pendingdx: number,
-    pendingdy: number
+    pendingdy: number,
+    radius: number
 }
 
 export default class Balls {
@@ -54,7 +55,7 @@ export default class Balls {
         this.ballCount = 10;
         this.ballRadius = 10;
         this.canvas = <HTMLCanvasElement>document.getElementById("myCanvas");
-        this.ctx = this.canvas.getContext("2d");
+        this.ctx = this.canvas ? this.canvas.getContext("2d") : undefined;
         this.addBalls();
     }
 
@@ -71,6 +72,7 @@ export default class Balls {
                 y: getRandomArbitrary(10, 310),
                 dx: Math.random() > 0.2 ? 2 : -2,
                 dy: Math.random() > 0.5 ? 2 : -2,
+                radius: this.ballRadius,
             };
         }
 
@@ -99,8 +101,10 @@ export default class Balls {
         var positionDeltaY = ball.y - ballCollidedWith.y;
         var dotProduct = velocityDeltaX * positionDeltaX + velocityDeltaY * positionDeltaY;
 
-        newVelocity.dx = ball.dx - (dotProduct / magnitude) * positionDeltaX;
-        newVelocity.dy = ball.dy - (dotProduct / magnitude) * positionDeltaY;
+        var massProportion = 2*ballCollidedWith.radius / (ballCollidedWith.radius + ball.radius);
+
+        newVelocity.dx = ball.dx - (dotProduct / magnitude) * positionDeltaX * massProportion;
+        newVelocity.dy = ball.dy - (dotProduct / magnitude) * positionDeltaY * massProportion;
 
         return newVelocity;
     }
@@ -111,10 +115,10 @@ export default class Balls {
     *
     * @return - boolean
     */
-    detectBallCollision = (ballA: Ball, ballB: Ball) => {
+    detectBallCollision = (ballA: Ball, ballB: Ball, canvasHeight) => {
         var dxsqu = Math.pow(ballA.x - ballB.x, 2);
-        var dysqu = Math.pow((this.canvas.height - ballA.y) - (this.canvas.height - ballB.y), 2);
-        var drsqu = Math.pow(this.ballRadius + this.ballRadius, 2);
+        var dysqu = Math.pow((canvasHeight - ballA.y) - (canvasHeight - ballB.y), 2);
+        var drsqu = Math.pow(ballA.radius + ballB.radius, 2);
         return dxsqu + dysqu <= drsqu;
     }
 
@@ -132,7 +136,7 @@ export default class Balls {
                 } else {
                     var otherBall = this.balls[j];
                     // if they've collided
-                    if(this.detectBallCollision(ball, otherBall)) {
+                    if(this.detectBallCollision(ball, otherBall, this.canvas.height)) {
                         // delete balls that have been generated as colliding in initial positions
                         if(!this.ballsDrawn){
                             this.balls.splice(i, 1);

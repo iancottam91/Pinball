@@ -8,4 +8,12 @@
 
 need a class that does the moving
 and a  class that does the calculating
-Set up game in uni project style
+
+
+- improve structure of code
+- set up a balls class - dont just use the experiment one
+
+
+- my formula assumes both balls are moving! and the same mass(radius)
+
+
