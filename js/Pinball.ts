@@ -85,20 +85,7 @@ export default class Pinball {
         return gameWrapper.firstElementChild;
     }
 
-
-    firePinball(angle: number){
-        console.log('firePinball at: ' + angle);
-
-        // draw the pinball ball
-        this.drawCircle(this.pinball);
-
-        // get it to move
-        this.movePinball();
-    }
-
-    movePinball(){
-        console.log(this.pinball);
-    }
+    // ** DRAWING ** //
 
     drawObstacles(obstacles: Array<rectangle | circle>){
 
@@ -162,12 +149,30 @@ export default class Pinball {
             this.pinball.y = this.tableHeight - (this.releaseLineLength * Math.sin((angle * Math.PI)/180));
 
             // set pinball initial velocities
-            this.pinball.dx = (this.tableWidth - this.pinball.x)/ this.releaseLineLength;
-            this.pinball.dy = (this.tableHeight - this.pinball.y)/ this.releaseLineLength;
+            this.pinball.dx = -((this.tableWidth - this.pinball.x)/ this.releaseLineLength) * 2;
+            this.pinball.dy = -((this.tableHeight - this.pinball.y)/ this.releaseLineLength) * 2;
 
             ctx.lineTo(this.pinball.x, this.pinball.y);
             ctx.stroke();
         }
+    }
+
+    // ** DRAWING END ** //
+
+    /* 
+    * Begin the animation
+    * Need to redraw everything after each frame
+    */
+    startGame = () => {
+        let ctx = this.table.getContext('2d');
+        ctx.clearRect(0, 0, this.tableWidth, this.tableHeight);
+        this.drawObstacles(this.obstacles);
+        this.drawCircle(this.pinball);        
+        this.pinball.x += this.pinball.dx;
+        this.pinball.y += this.pinball.dy;
+
+        // re draw it all
+        requestAnimationFrame(this.startGame);
     }
 
     handleKeyDown = (e) => {
@@ -185,8 +190,12 @@ export default class Pinball {
         } else if(e.keyCode == 13) {
             ctx.clearRect(this.tableWidth, this.tableHeight, -this.releaseLineLength, -this.releaseLineLength);
             // fire the pinball
-            this.firePinball(this.releaseAngle);
+            this.startGame(this.releaseAngle);
         }
     }
+
+    // ** COLLIDING ** //
+
+    // ** COLLIDING END ** //
 
 }
