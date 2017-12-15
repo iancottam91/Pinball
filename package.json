@@ -1,0 +1,14 @@
+{
+  "name": "Pinball",
+  "version": "1.0.0",
+  "description": "Retro Pinball game",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "eslint": "eslint js"
+  },
+  "dependencies": {
+    "eslint": "^4.12.1",
+    "expect": "^21.2.1"
+  }
+}
