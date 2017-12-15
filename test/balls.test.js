@@ -1,4 +1,4 @@
-import Balls from '../js/balls';
+import Balls from '../js/experiment/balls';
 
 describe('newVelocity', () => {
 
@@ -32,7 +32,7 @@ describe('newVelocity', () => {
             dy: -1.2400000000000002
         }
 
-        expect(balls.newVelocity(balla, ballb)).toEqual(result);
+        expect(balls.newVelocityPostBallCollision(balla, ballb)).toEqual(result);
 
     });
 

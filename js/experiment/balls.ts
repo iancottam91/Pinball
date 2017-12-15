@@ -76,24 +76,8 @@ export default class Balls {
 
     }
 
-    drawBalls() {
-        this.ballsDrawn = true;
-
-        this.ctx.beginPath();
-
-        for(var i=0; i<this.balls.length; i++) {
-            var ball = this.balls[i];
-            this.ctx.arc(ball.x, ball.y, this.ballRadius, 0, Math.PI*2);
-            this.ctx.fillStyle = "#0095DD";
-            this.ctx.fill();
-            this.ctx.closePath();
-        }
-    }
-
-    // following formula at bottom of https://en.wikipedia.org/wiki/Elastic_collision
-
     /*
-    * Calculate the new velocity vector of a ball colliding with another ball
+    * Calculate the new velocity vector of a ball colliding with another ball following formula at bottom of https://en.wikipedia.org/wiki/Elastic_collision
     *
     * ball - initial position as x,y 
     * ball - initial velocity vector as dx,dy 
@@ -102,8 +86,7 @@ export default class Balls {
     *
     * @return - newVelocity - an object representing new vector of new velocity
     */
-
-    newVelocity(ball: Ball, ballCollidedWith: Ball) {
+    newVelocityPostBallCollision(ball: Ball, ballCollidedWith: Ball) {
         var newVelocity = {
             dx: 0,
             dy: 0
@@ -122,6 +105,23 @@ export default class Balls {
         return newVelocity;
     }
 
+
+    /*
+    * Has a collision between two balls occured?
+    *
+    * @return - boolean
+    */
+    detectBallCollision = (ballA: Ball, ballB: Ball) => {
+        var dxsqu = Math.pow(ballA.x - ballB.x, 2);
+        var dysqu = Math.pow((this.canvas.height - ballA.y) - (this.canvas.height - ballB.y), 2);
+        var drsqu = Math.pow(this.ballRadius + this.ballRadius, 2);
+        return dxsqu + dysqu <= drsqu;
+    }
+
+    /*
+    * Consider each ball - check for collisions with other balls and work out new velocities in this situation
+    *
+    */
     ballCollisionDetection(){
         for(let i=0; i<this.balls.length; i++) {
             var ball = this.balls[i]; // consider a ball
@@ -140,33 +140,20 @@ export default class Balls {
 
                         // cache new velocities - must apply them after all balls have been considered to avoid 
                         // issue where the second ball in the collision doesn't have it's velocity changed
-                        var newVelocityVector = this.newVelocity(ball, otherBall);
+                        var newVelocityVector = this.newVelocityPostBallCollision(ball, otherBall);
                         ball.pendingdx = newVelocityVector.dx;
                         ball.pendingdy = newVelocityVector.dy;
                     }
                 }
             }
         }
-
-        // apply all pendingdx and pendingdy to dx and dy
-        this.applyNewVelocities();
-
     }
 
-    detectBallCollision = (ballA: Ball, ballB: Ball) => {
-        var dxsqu = Math.pow(ballA.x - ballB.x, 2);
-        var dysqu = Math.pow((this.canvas.height - ballA.y) - (this.canvas.height - ballB.y), 2);
-        var drsqu = Math.pow(this.ballRadius + this.ballRadius, 2);
-        return dxsqu + dysqu <= drsqu;
-    }
-
-    applyNewVelocities = () => {
-        this.balls.map((ball) => {
-            ball.pendingdx ? ball.dx = ball.pendingdx : undefined;
-            ball.pendingdy ? ball.dy = ball.pendingdy : undefined;
-        });
-    }
-
+    /*
+    * Detect collisions with walls - set new velocity after these collisions
+    *
+    * @return - boolean
+    */
     wallCollisionDetection = (ball: Ball) => {
         var x = ball.x;
         var y = ball.y;
@@ -182,33 +169,45 @@ export default class Balls {
         }
     }
 
-    move_ball(ball) {
-        var x = ball.x;
-        var y = ball.y;
-        var dx = ball.dx;
-        var dy = ball.dy;
-        if(x + dx > this.canvas.width-this.ballRadius || x + dx < this.ballRadius) {
-            ball.pendingdx = -dx;
-        }
-        if(y + dy < this.ballRadius || y + dy > this.canvas.height-this.ballRadius) {
-            ball.pendingdy = -dy;
-        }
 
-        x += dx;
-        y += dy;
-        ball.x = x;
-        ball.y = y;
-        ball.dx = dx;
-        ball.dy = dy;
+    /*
+    * Once all possible collisions have been checked for, apply the new velocities
+    *
+    */
+    applyNewVelocities = () => {
+        this.balls.map((ball) => {
+            ball.pendingdx ? ball.dx = ball.pendingdx : undefined;
+            ball.pendingdy ? ball.dy = ball.pendingdy : undefined;
+        });
+    }
+
+    drawBalls() {
+        this.ballsDrawn = true;
+
+        this.ctx.beginPath();
+
+        for(var i=0; i<this.balls.length; i++) {
+            var ball = this.balls[i];
+            this.ctx.arc(ball.x, ball.y, this.ballRadius, 0, Math.PI*2);
+            this.ctx.fillStyle = "#0095DD";
+            this.ctx.fill();
+            this.ctx.closePath();
+        }
+    }
+
+    move_ball(ball) {
+        this.applyNewVelocities();
+        ball.x += ball.dx;
+        ball.y += ball.dy;
     }
 
     draw = () => {
         // repaint
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ballCollisionDetection();
-        // for (var i = this.balls.length - 1; i >= 0; i--) {
-        //     this.wallCollisionDetection(this.balls[i]);
-        // }
+        for (var i = this.balls.length - 1; i >= 0; i--) {
+            this.wallCollisionDetection(this.balls[i]);
+        }
 
         this.drawBalls();
 
