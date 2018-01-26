@@ -24,4 +24,4 @@ const obstacles = [{
 }]
 
 
-const pinball = new Pinball({table, obstacles});
+const pinball = new Pinball({table, obstacles, releaseFromRight: false});
