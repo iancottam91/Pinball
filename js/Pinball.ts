@@ -161,8 +161,8 @@ export default class Pinball {
                 this.pinball.y = this.tableHeight - (this.releaseLineLength * Math.sin((angle * Math.PI)/180));
 
                 // set pinball initial velocities
-                this.pinball.dx = -((this.tableWidth - this.pinball.x)/ this.releaseLineLength) * 4;
-                this.pinball.dy = -((this.tableHeight - this.pinball.y)/ this.releaseLineLength) * 4;
+                this.pinball.dx = -((this.tableWidth - this.pinball.x)/ this.releaseLineLength) * 2;
+                this.pinball.dy = -((this.tableHeight - this.pinball.y)/ this.releaseLineLength) * 2;
             } else {
                 ctx.clearRect(0, this.tableHeight, this.releaseLineLength, -this.releaseLineLength);
                 ctx.moveTo(0, this.tableHeight);
@@ -170,8 +170,8 @@ export default class Pinball {
                 this.pinball.y = this.tableHeight - (this.releaseLineLength * Math.sin((angle * Math.PI)/180));
 
                 // set pinball initial velocities
-                this.pinball.dx = ((this.pinball.x/ this.releaseLineLength) * 4);
-                this.pinball.dy = -((this.tableHeight - this.pinball.y)/ this.releaseLineLength) * 4;
+                this.pinball.dx = ((this.pinball.x/ this.releaseLineLength) * 2);
+                this.pinball.dy = -((this.tableHeight - this.pinball.y)/ this.releaseLineLength) * 2;
             }
 
             ctx.lineTo(this.pinball.x, this.pinball.y);
@@ -276,6 +276,29 @@ export default class Pinball {
         }
     }
 
+    postBallCollisionVector(pinball, ball) {
+
+        // reposition the ball to prevent overlap - think i need to do this to make it actaully work
+        // https://gist.github.com/CollectionOfAtoms/db3a44d71c8308f355bba472f25f848b
+        // could do with some more test cases
+        // mBallX = pos2x - (collisionDistance * (-Dx/D) + (float).1); //-Dx/D = sin(theta)
+        // mBallY = pos2y + (collisionDistance * ( Dy/D) + (float).1); // Dy/D = cos(theta)
+
+        var Vix = pinball.dx;
+        var Viy = pinball.dy;
+        var dx = pinball.x - ball.x
+        var dy = pinball.y - ball.y
+        var D2 = Math.pow(dx, 2) + Math.pow(dy, 2);
+
+        var Vfx = -(((Math.pow(dx, 2) - Math.pow(dy, 2)) * Vix) - (2 * dx * dy * Viy)) / D2
+        var Vfy = (((Math.pow(dy, 2) - Math.pow(dx, 2)) * -Viy) - (2 * dx * dy * Vix)) / D2
+
+        return {
+            Vfx,
+            Vfy
+        }
+    }
+
     collisionDetection(obstacles){
 
         for(let i=0; i<obstacles.length; i++) {
@@ -285,11 +308,13 @@ export default class Pinball {
                 const balls = new Balls();
                 if(balls.detectBallCollision(this.pinball, obstacles[i], this.tableHeight)) {
                     console.log('hit the ball');
+                    var ball = obstacles[i];
 
-                    var newVelocityVector = balls.newVelocityPostBallCollision(this.pinball, obstacles[i]); // cant use this as the other ball is static
-                    // need https://collectionofatoms.com/2016/05/16/ball_collisions
-                    this.pinball.dx = newVelocityVector.dx;
-                    this.pinball.dy = newVelocityVector.dy;
+                    var newVelocity = this.postBallCollisionVector(this.pinball, ball);
+
+                    this.pinball.dx = newVelocity.Vfx;
+                    this.pinball.dy = newVelocity.Vfy;
+
                 }
             }
 

@@ -23,6 +23,97 @@ describe('addPinballTable', () => {
 
 });
 
+describe('postBallCollisionVector', () => {
+
+    const table = {
+        wrapper: "pinball",
+        tableWidth: 500,
+        tableHeight: 400
+    }
+
+    const obstacles = [];
+
+    const pinball = new Pinball({table, obstacles});
+
+
+    it('should calculate the correct vector for a collision in the x plane', () => {
+        const movingBall = {
+            x: 1,
+            y: 3,
+            dx: 4,
+            dy: 0
+        }
+
+        const staticBall = {
+            x: 2,
+            y: 3
+        }
+
+        expect(pinball.postBallCollisionVector(movingBall, staticBall)).toEqual({
+            Vfx: -4,
+            Vfy: 0,
+        });
+    });
+
+    it('should calculate the correct vector for a collision in the y plane', () => {
+        const movingBall = {
+            x: 1,
+            y: 1,
+            dx: 0,
+            dy: 4
+        }
+
+        const staticBall = {
+            x: 1,
+            y: 3
+        }
+
+        expect(pinball.postBallCollisionVector(movingBall, staticBall)).toEqual({
+            Vfx: -0,
+            Vfy: -4,
+        });
+    });
+
+    it('should calculate the correct vector for a collision where tangent is 45 degrees', () => {
+        const movingBall = {
+            x: 0,
+            y: 0,
+            dx: 3,
+            dy: 0
+        }
+
+        const staticBall = {
+            x: 7,
+            y: 7
+        }
+
+        expect(pinball.postBallCollisionVector(movingBall, staticBall)).toEqual({
+            Vfx: -0,
+            Vfy: -3,
+        });
+    });
+
+    it('should calculate the correct vector for a complex collison', () => {
+        const movingBall = {
+            x: 0,
+            y: 0,
+            dx: 1,
+            dy: 5
+        }
+
+        const staticBall = {
+            x: 7,
+            y: 7
+        }
+
+        expect(pinball.postBallCollisionVector(movingBall, staticBall)).toEqual({
+            Vfx: -0,
+            Vfy: -3,
+        });
+    });
+
+})
+
 describe('drawObstacles', () => {
 
     // Set up our document body
